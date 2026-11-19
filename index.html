@@ -1502,11 +1502,10 @@ function renderGrades() {
   filterSelect.value = allSubjects.includes(currentFilter) ? currentFilter : 'Химия';
 
   const points = getSubjectSeries(filterSelect.value);
-  points[points.length - 1][1] = 4.05;
   const avg = fmtNum(points[points.length - 1][1]);
 
   document.getElementById('big-avg-score').textContent = avg;
-  document.getElementById('card-avg-score').textContent = '4,05';
+  document.getElementById('card-avg-score').textContent = avg;
   document.getElementById('new-grades-count').textContent = grades.length;
   document.getElementById('perf-chart').innerHTML = buildChartSvg(points);
 
