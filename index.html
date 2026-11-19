@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>МАОУ "Лицей № 4" — Электронный дневник</title>
+<link rel="preconnect" href="https://googleapis.com">
+<link rel="preconnect" href="https://gstatic.com" crossorigin>
+<link href="https://googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-body: #F2F4F7;
+    --bg-card: #FFFFFF;
+    --bg-subtle: #F4F6F9;
+    --bg-pill-blue: #EBF3FE;
+    --text-primary: #141C2B;
+    --text-secondary: #6E7A8A;
+    --text-muted: #98A2B3;
+    --accent-blue: #1565D8;
+    --accent-blue-dark: #162B5C;
+    --border-color: #EAECF0;
+    --green-badge-bg: #E7F7EE;
+    --green-badge-text: #1B874B;
+    --green-solid: #1E8E52;
+    --orange-badge-bg: #FEF4E6;
+    --orange-badge-text: #B56910;
+    --red-badge-bg: #FEECEB;
+    --red-badge-text: #C93B32;
+    --shadow-card: 0 2px 10px rgba(16, 24, 40, 0.04);
+  }
+
+  body.dark-theme {
+    --bg-body: #11151C;
+    --bg-card: #1C222D;
+    --bg-subtle: #252D3B;
+    --bg-pill-blue: #1E3252;
+    --text-primary: #F2F4F7;
+    --text-secondary: #98A2B3;
+    --text-muted: #667085;
+    --accent-blue: #3B82F6;
+    --accent-blue-dark: #60A5FA;
+    --border-color: #2D3646;
+    --green-badge-bg: #133A26;
+    --green-badge-text: #4ADE80;
+    --orange-badge-bg: #3D2B14;
+    --orange-badge-text: #FBBF24;
+    --red-badge-bg: #3F1B1A;
+    --red-badge-text: #F87171;
+    --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #E4E7EC;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .app-shell {
+    width: 100%;
+    max-width: 430px;
+    background-color: var(--bg-body);
+    min-height: 100vh;
+    position: relative;
+    padding-bottom: 84px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.08);
+    overflow-x: hidden;
+  }
+
+  .top-header {
+    background-color: var(--bg-card);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .school-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .school-logo {
+    width: 38px;
+    height: 38px;
+    background: #1565D8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .school-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .school-year {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--accent-blue);
+  }
+
+  .avatar-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563EB 0%, #9333EA 60%, #10B981 100%);
+    cursor: pointer;
+  }
+
+  .page-banner {
+    background-color: var(--bg-card);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .page-banner::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 4px;
+    background-color: var(--accent-blue);
+    border-radius: 0 4px 4px 0;
+  }
+
+  .page-banner h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .content {
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .date-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 2px 4px;
+  }
+
+  .current-date-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .badges-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge-class {
+    background-color: var(--bg-pill-blue);
+    color: var(--accent-blue);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+
+  .badge-term {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .badge-vacation {
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--green-badge-bg);
+    color: var(--green-badge-text);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+
+  .icon-btn-box {
+    width: 36px;
+    height: 36px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-blue);
+    cursor: pointer;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 126px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .stat-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.25;
+  }
+
+  .stat-card-bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: 14px;
+  }
+
+  .stat-big-num {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-left: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 78px;
+  }
+
+  .stat-sub-below {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+  }
+
+  .stat-icon-box {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .events-empty-box {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  .section-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 8px;
+  }
+
+  .section-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .toggle-pills {
+    display: flex;
+    align-items: center;
+    background: var(--bg-subtle);
+    border-radius: 20px;
+    padding: 2px;
+  }
+
+  .toggle-pill {
+    border: none;
+    background: transparent;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: 16px;
+    cursor: pointer;
+  }
+
+  .toggle-pill.active {
+    background: var(--accent-blue);
+    color: #FFFFFF;
+  }
+
+  .link-all {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .lesson-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .lesson-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .lesson-left {
+    display: flex;
+    gap: 10px;
+  }
+
+  .lesson-num-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--bg-pill-blue);
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .lesson-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .lesson-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  .day-tag {
+    background: var(--bg-pill-blue);
+    color: var(--accent-blue);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 10px;
+  }
+
+  .att-day-block {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .att-day-block:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .att-day-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .att-day-name {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .att-day-date {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-left: 6px;
+    font-weight: 500;
+  }
+  .att-count {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .att-count b {
+    color: #C93B32;
+    margin-right: 2px;
+  }
+  .att-lesson-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 3px 0;
+  }
+  .att-lesson-num {
+    font-weight: 600;
+    width: 72px;
+    flex-shrink: 0;
+  }
+  .att-lesson-subj {
+    color: var(--text-secondary);
+    flex: 1;
+  }
+  .att-code {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .hw-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 8px;
+  }
+  .hw-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .hw-left {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+  .hw-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: var(--bg-pill-blue);
+    color: var(--accent-blue);
+    display: flex;
+    align-items: center;
+Используйте код с осторожностью.
+
+justify-content: center;
+flex-shrink: 0;
+}
+.hw-subj {
+font-size: 14px;
+font-weight: 700;
+}
+.hw-task {
+font-size: 13px;
+color: var(--text-secondary);
+margin-top: 2px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.hw-due-badge {
+background: var(--red-badge-bg);
+color: var(--red-badge-text);
+font-size: 11px;
+font-weight: 600;
+padding: 4px 8px;
+border-radius: 10px;
+white-space: nowrap;
+}
+.avg-big-display {
+font-size: 40px;
+font-weight: 700;
+color: var(--accent-blue-dark);
+line-height: 1.1;
+margin-top: 4px;
+}
+.chart-wrapper {
+margin-top: 12px;
+width: 100%;
+overflow: hidden;
+}
+.grade-row {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 10px 6px;
+border-bottom: 1px solid var(--border-color);
+cursor: pointer;
+border-radius: 8px;
+transition: background 0.15s;
+}
+.grade-row:hover {
+background: var(--bg-subtle);
+}
+.grade-row:last-child {
+border-bottom: none;
+}
+.grade-subj {
+font-size: 14px;
+font-weight: 600;
+flex: 1;
+}
+.grade-meta {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.grade-pill {
+width: 24px;
+height: 24px;
+border-radius: 6px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 13px;
+font-weight: 700;
+color: #fff;
+}
+.grade-5 { background: #1E8E52; }
+.grade-4 { background: #43A047; }
+.grade-3 { background: #F59E0B; }
+.grade-2 { background: #DC2626; }
+.grade-weight {
+display: flex;
+align-items: center;
+gap: 3px;
+font-size: 12px;
+color: var(--text-secondary);
+}
+.grade-date-pill {
+background: var(--green-badge-bg);
+color: var(--green-badge-text);
+font-size: 11px;
+font-weight: 600;
+padding: 4px 8px;
+border-radius: 8px;
+}
+.add-grade-btn {
+margin-top: 10px;
+width: 100%;
+padding: 9px;
+border: 1px dashed var(--accent-blue);
+background: var(--bg-pill-blue);
+color: var(--accent-blue);
+border-radius: 10px;
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+}
+.diary-days-bar {
+background: var(--bg-card);
+padding: 10px 12px;
+display: flex;
+align-items: center;
+gap: 6px;
+border-bottom: 1px solid var(--border-color);
+overflow-x: auto;
+}
+.day-tab {
+padding: 6px 10px;
+border-radius: 10px;
+text-align: center;
+font-size: 11px;
+color: var(--text-secondary);
+cursor: pointer;
+flex-shrink: 0;
+}
+.day-tab b {
+display: block;
+font-size: 12px;
+color: var(--text-primary);
+}
+.day-tab.active {
+background: var(--accent-blue);
+color: #fff;
+}
+.day-tab.active b {
+color: #fff;
+}
+.diary-lesson-card {
+background: var(--bg-card);
+border-radius: 14px;
+padding: 14px;
+box-shadow: var(--shadow-card);
+}
+.diary-lesson-top {
+display: flex;
+gap: 10px;
+}
+.diary-num {
+font-size: 16px;
+font-weight: 700;
+color: var(--text-primary);
+width: 18px;
+}
+.diary-subj {
+font-size: 15px;
+font-weight: 700;
+}
+.diary-time {
+font-size: 12px;
+color: var(--text-secondary);
+margin-top: 3px;
+}
+.diary-hw-box {
+margin-top: 10px;
+margin-left: 28px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 8px;
+color: var(--accent-blue);
+font-size: 13px;
+font-weight: 500;
+}
+.schedule-filter-card {
+background: var(--bg-card);
+border-radius: 16px;
+padding: 14px;
+box-shadow: var(--shadow-card);
+}
+.filter-top {
+display: flex;
+gap: 12px;
+align-items: center;
+}
+.filter-chips {
+display: flex;
+flex-wrap: wrap;
+gap: 6px;
+}
+.chip {
+background: var(--bg-subtle);
+color: var(--text-secondary);
+font-size: 12px;
+font-weight: 500;
+padding: 4px 10px;
+border-radius: 12px;
+}
+.filter-select-row {
+margin-top: 12px;
+padding-top: 12px;
+border-top: 1px solid var(--border-color);
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 14px;
+font-weight: 600;
+}
+.sched-lesson-box {
+border: 1px solid var(--border-color);
+border-radius: 10px;
+padding: 10px 12px;
+font-size: 14px;
+font-weight: 700;
+margin-top: 6px;
+background: var(--bg-subtle);
+}
+.access-denied-box {
+background: var(--red-badge-bg);
+border: 1px solid rgba(201, 59, 50, 0.25);
+color: var(--red-badge-text);
+padding: 14px 16px;
+border-radius: 12px;
+font-size: 14px;
+font-weight: 500;
+line-height: 1.4;
+}
+.bottom-nav {
+position: fixed;
+bottom: 0;
+width: 100%;
+max-width: 430px;
+background: var(--bg-card);
+border-top: 1px solid var(--border-color);
+display: grid;
+grid-template-columns: repeat(6, 1fr);
+padding: 8px 4px 10px;
+z-index: 30;
+}
+.nav-item {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 4px;
+font-size: 10px;
+font-weight: 500;
+color: var(--text-secondary);
+cursor: pointer;
+border: none;
+background: none;
+}
+.nav-item.active {
+color: var(--accent-blue);
+font-weight: 600;
+}
+.sheet-overlay {
+position: fixed;
+inset: 0;
+background: rgba(16, 24, 40, 0.45);
+z-index: 40;
+display: none;
+justify-content: center;
+align-items: flex-end;
+}
+.sheet-overlay.open {
+display: flex;
+}
+.bottom-sheet {
+width: 100%;
+max-width: 430px;
+background: var(--bg-card);
+border-radius: 20px 20px 0 0;
+padding: 10px 16px 28px;
+animation: slideUp 0.2s ease-out;
+}
+@keyframes slideUp {
+from { transform: translateY(100%); }
+to { transform: translateY(0); }
+}
+.sheet-handle {
+width: 36px;
+height: 4px;
+background: var(--border-color);
+border-radius: 2px;
+margin: 0 auto 12px;
+}
+.sheet-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 14px;
+}
+.sheet-title {
+font-size: 18px;
+font-weight: 700;
+}
+.close-btn {
+width: 30px;
+height: 30px;
+border-radius: 8px;
+background: var(--bg-subtle);
+border: none;
+color: var(--text-secondary);
+font-size: 18px;
+cursor: pointer;
+}
+.sheet-menu-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 13px 12px;
+border-radius: 12px;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+color: var(--text-primary);
+}
+.sheet-menu-item.active {
+background: var(--bg-pill-blue);
+color: var(--accent-blue);
+}
+.sheet-item-left {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+.theme-switch-box {
+border: 1px solid var(--border-color);
+border-radius: 12px;
+padding: 10px 14px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 10px;
+}
+.theme-toggle-pill {
+display: flex;
+align-items: center;
+background: #FEF3C7;
+border-radius: 20px;
+padding: 3px;
+gap: 4px;
+cursor: pointer;
+}
+.theme-circle {
+width: 26px;
+height: 26px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 14px;
+}
+.theme-circle.active {
+background: #F59E0B;
+color: #fff;
+}
+.footer-copy {
+margin-top: 20px;
+font-size: 12px;
+color: var(--text-muted);
+line-height: 1.5;
+}
+.modal-card {
+width: 90%;
+max-width: 360px;
+background: var(--bg-card);
+border-radius: 16px;
+padding: 18px;
+margin: auto;
+}
+.form-group {
+margin-bottom: 12px;
+}
+.form-group label {
+display: block;
+font-size: 12px;
+color: var(--text-secondary);
+margin-bottom: 4px;
+font-weight: 600;
+}
+.form-group input, .form-group select {
+width: 100%;
+padding: 10px 12px;
+border-radius: 10px;
+border: 1px solid var(--border-color);
+background: var(--bg-subtle);
+color: var(--text-primary);
+font-size: 14px;
+font-family: inherit;
+}
+.modal-actions {
+display: flex;
+gap: 8px;
+margin-top: 16px;
+}
+.btn-primary {
+flex: 1;
+padding: 10px;
+border: none;
+border-radius: 10px;
+background: var(--accent-blue);
+color: #fff;
+font-weight: 600;
+cursor: pointer;
+}
+.btn-danger {
+padding: 10px 14px;
+border: none;
+border-radius: 10px;
+background: var(--red-badge-bg);
+color: var(--red-badge-text);
+font-weight: 600;
+cursor: pointer;
+}
+.hidden { display: none !important; }
+
+
+
+
+МАОУ "Лицей № 4"
+2026/2027 уч.год
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Главная
+Четверг, 19 ноября 2026
+
+10Б класс
+1 полугодие
+
+
+☼ До каникул 42 дня
+
+
+
+
+
+
+
+Уроков сегодня
+
+
+8
+Уроки заверше...
+
+📖
+
+Домашние задания
+
+16
+📄
+
+Оценки
+
+
+2
+новые
+
+☆
+
+Пропуски
+
+
+8
+за неделю
+
+👤
+
+Средний балл
+
+3,33
+📈
+
+События
+Событий нет
+
+Расписание на завтра
+
+
+Сегодня
+Завтра
+
+Все уроки >
+
+
+
+Посещаемость
+
+
+
+Пятница13.11
+1 пропусков
+
+Урок №8ФизикаОТ
+
+
+
+Понедельник16.11
+2 пропусков
+
+Урок №6Алгебра и начала анализаУП
+Урок №7Алгебра и начала анализаУП
+
+
+
+Среда18.11
+4 пропусков
+
+Урок №1Алгебра и начала анализаУП
+Урок №2Алгебра и начала анализаУП
+Урок №6ХимияОТ
+Урок №7Ин. яз. 1ОТ
+
+
+
+Четверг19.11
+1 пропусков
+
+Урок №5ХимияОТ
+
+Домашние задания
+Все задания >
+
+
+
+📋
+
+Биология
+§ 13, повторить § 12
+
+
+сегодня (Чт)
+
+
+
+📋
+
+Геометрия
+№ 27, 30, 31
+
+
+сегодня (Чт)
+
+
+
+📋
+
+Информатика
+§ 5, Задания в тетради
+
+
+сегодня (Чт)
+
+
+
+📋
+
+Литература
+Дозаполнить лист, вклеить в тет...
+
+
+сегодня (Чт)
+
+Успеваемость
+
+Химия
+
+
+Средний балл
+3,33
+За неделю
+4
+3,8
+3,8
+4,12
+4,14
+4,03
+4,05
+4,02
+4,02
+3,33
+3,33
+3,33
+
+
+
+
+
+
+Последние оценки
+Нажмите, чтобы изменить
+
+
++ Добавить оценку
+
+
+📅
+сб14 нояб.
+пн16 нояб.
+вт17 нояб.
+ср18 нояб.
+чт19 нояб.
+
+
+
+1Биология08:30 - 09:10 · Каб. 5
+🏠 § 13, повторить § 12
+
+
+2Информатика09:25 - 10:05 · Каб. 15
+🏠 § 5, Задания в тетради
+
+
+3Экспериментальная биология10:20 - 11:00 · Каб. 5
+🏠 Решение задач, конспект в тетради
+
+
+4Литература11:15 - 11:55 · Каб. 7
+🏠 Дозаполнить лист, вклеить в тет...📎
+
+
+5Химия12:10 - 12:50 · Каб. 3
+🏠 Пр. 36, записи в тетради, повторить ...
+
+
+6Геометрия13:05 - 13:45 · Каб. 4
+🏠 № 27, 30, 31
+
+
+7Геометрия14:00 - 14:40 · Каб. 4
+
+
+8Физическая культура14:55 - 15:35 · Каб. сз1
+
+
+Расписание на неделю
+
+
+
+
+▽
+
+Расписание по дням недели
+16.11 - 22.11
+Только учебная
+10Б
+
+
+
+В названии использовать
+>
+
+Понедельник
+16.11.2026
+Урок № 2
+09:25 - 10:05
+10*/Ист./10Б
+
+
+Урок № 3
+10:20 - 11:00
+10*/Литер/10Б
+
+
+Урок № 4
+11:15 - 11:55
+10*/Физ./10Б
+
+
+Урок № 5
+12:10 - 12:50
+10*/Геогр./10Б
+
+
+Урок № 6
+13:05 - 13:45
+10*/Алг. нач./Б
+
+Вторник
+17.11.2026
+Урок № 1
+08:30 - 09:10
+10*/Теория и практика написания сочинений разных жанров/х/б
+
+
+Урок № 2
+09:25 - 10:05
+10*/Хим./Р
+
+
+Урок № 3
+10:20 - 11:00
+10*/Физ-ра/10Б [сз1]
+
+
+Урок № 4
+11:15 - 11:55
+10*/Биол./Р
+
+
+
+Обратитесь к администратору системы, чтобы получить право доступа.
+
+
+Меню
+
+
+
+Главная
+
+
+<path d="M18.5 2.5a2.
+121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+Дневник
+
+
+
+Расписание
+
+
+
+Отчеты
+
+
+
+Ещё
+
+
+Меню
+✕
+
+
+🏠Главная
+
+
+📅Расписание
+⌄
+
+
+📝Дневник
+⌄
+
+
+💼Портфолио
+⌄
+
+
+Настройки
+✕
+Тема оформления
+
+☾
+☼
+
+📱Мобильная версия
+
+
+👤Профиль Морозова Алёна
+
+
+↪Выход (Сброс оценок)
+ИРТех, г. Самара. 5.59.1
+
+© 2007-2026 Все права защищены
+
+
+Изменить оценку
+✕
+
+
+Предмет
+
+Оценка
+5 (Отлично)
+4 (Хорошо)
+3 (Удовлетворительно)
+2 (Неудовлетворительно)
+
+
+
+Вес оценки (коэффициент)
+
+Дата
+Удалить
+Сохранить
+
+
+const homeSchedules = {
+tomorrow: [
+{ num: 1, name: 'Ин. яз. 1', time: '08:30 - 09:10', tag: 'Завтра' },
+{ num: 2, name: 'Ин. яз. 1', time: '09:25 - 10:05', tag: 'Завтра' },
+{ num: 3, name: 'Экспериментальная химия', time: '10:20 - 11:00', tag: 'Завтра' },
+{ num: 4, name: 'Русский язык', time: '11:15 - 11:55', tag: 'Завтра' },
+{ num: 5, name: 'Обществознание', time: '12:10 - 12:50', tag: 'Завтра' },
+{ num: 6, name: 'Вероятность и статистика', time: '13:05 - 13:45', tag: 'Завтра' },
+{ num: 7, name: 'Индивидуальный проект', time: '14:00 - 14:40', tag: 'Завтра' },
+{ num: 8, name: 'Физика', time: '14:55 - 15:35', tag: 'Завтра' }
+],
+today: [
+{ num: 1, name: 'Биология', time: '08:30 - 09:10', tag: 'Сегодня' },
+{ num: 2, name: 'Информатика', time: '09:25 - 10:05', tag: 'Сегодня' },
+{ num: 3, name: 'Экспериментальная биология', time: '10:20 - 11:00', tag: 'Сегодня' },
+{ num: 4, name: 'Литература', time: '11:15 - 11:55', tag: 'Сегодня' },
+{ num: 5, name: 'Химия', time: '12:10 - 12:50', tag: 'Сегодня' },
+{ num: 6, name: 'Геометрия', time: '13:05 - 13:45', tag: 'Сегодня' },
+{ num: 7, name: 'Геометрия', time: '14:00 - 14:40', tag: 'Сегодня' },
+{ num: 8, name: 'Физическая культура', time: '14:55 - 15:35', tag: 'Сегодня' }
+]
+};
+// Оценки настроены так, чтобы по Химии средний балл был ровно 3,33 ((4+3+3)/3 = 3,33)
+const defaultGrades = [
+{ subject: 'Химия', value: 4, weight: 10, date: '18.11 (Ср)' },
+{ subject: 'Биология', value: 4, weight: 10, date: '17.11 (Вт)' },
+{ subject: 'Ин. яз. 1', value: 5, weight: 10, date: '13.11 (Пт)' },
+{ subject: 'Химия', value: 3, weight: 10, date: '11.11 (Ср)' },
+{ subject: 'Химия', value: 3, weight: 10, date: '05.11 (Чт)' }
+];
+let grades = JSON.parse(localStorage.getItem('morozova_grades_v2')) || [...defaultGrades];
+let editingIndex = -1;
+function toggleHomeSched(day) {
+document.getElementById('btn-today').classList.toggle('active', day === 'today');
+document.getElementById('btn-tomorrow').classList.toggle('active', day === 'tomorrow');
+document.getElementById('home-sched-title').textContent = day === 'tomorrow' ? 'Расписание на завтра' : 'Расписание на сегодня';
+const list = document.getElementById('home-lessons-list');
+list.innerHTML = homeSchedules[day].map(l => <div class="lesson-row"> <div class="lesson-left"> <div class="lesson-num-badge">${l.num}</div> <div> <div class="lesson-name">${l.name}</div> <div class="lesson-time">${l.time}</div> </div> </div> <span class="day-tag">${l.tag}</span> </div>).join('');
+}
+function renderGrades() {
+const filterSelect = document.getElementById('subject-filter');
+const currentFilter = filterSelect.value || 'Химия';
+const subjects = [...new Set(grades.map(g => g.subject))];
+filterSelect.innerHTML = 'Все предметы' +
+subjects.map(s => <option value="${s}" ${s === currentFilter ? 'selected' : ''}>${s}</option>).join('');
+const filtered = currentFilter === 'all' ? grades : grades.filter(g => g.subject === currentFilter);
+let totalWeighted = 0;
+let totalWeight = 0;
+filtered.forEach(g => {
+totalWeighted += g.value * g.weight;
+totalWeight += g.weight;
+});
+const avg = totalWeight > 0 ? (totalWeighted / totalWeight).toFixed(2).replace('.', ',') : '0,00';
+document.getElementById('big-avg-score').textContent = avg;
+document.getElementById('card-avg-score').textContent = avg;
+document.getElementById('new-grades-count').textContent = grades.length;
+document.getElementById('chart-pt-1').textContent = avg;
+document.getElementById('chart-pt-2').textContent = avg;
+document.getElementById('chart-pt-3').textContent = avg;
+const list = document.getElementById('grades-list');
+list.innerHTML = grades.map((g, idx) => <div class="grade-row" onclick="openGradeModal(${idx})"> <div class="grade-subj">${g.subject}</div> <div class="grade-meta"> <div class="grade-pill grade-${g.value}">${g.value}</div> <div class="grade-weight">⚖ ${g.weight} 🕒</div> <div class="grade-date-pill">${g.date}</div> </div> </div>).join('');
+}
+function openGradeModal(index) {
+editingIndex = index;
+const delBtn = document.getElementById('btn-delete-grade');
+if (index >= 0) {
+const g = grades[index];
+document.getElementById('modal-title').textContent = 'Изменить оценку';
+document.getElementById('input-subject').value = g.subject;
+document.getElementById('input-value').value = g.value;
+document.getElementById('input-weight').value = g.weight;
+document.getElementById('input-date').value = g.date;
+delBtn.style.display = 'block';
+} else {
+document.getElementById('modal-title').textContent = 'Новая оценка';
+document.getElementById('input-subject').value = 'Химия';
+document.getElementById('input-value').value = '5';
+document.getElementById('input-weight').value = '10';
+document.getElementById('input-date').value = '19.11 (Чт)';
+delBtn.style.display = 'none';
+}
+openSheet('gradeModal');
+}
+function saveGrade() {
+const subject = document.getElementById('input-subject').value.trim() || 'Химия';
+const value = parseInt(document.getElementById('input-value').value, 10);
+const weight = parseInt(document.getElementById('input-weight').value, 10) || 10;
+const date = document.getElementById('input-date').value.trim() || '19.11 (Чт)';
+if (editingIndex >= 0) {
+grades[editingIndex] = { subject, value, weight, date };
+} else {
+grades.unshift({ subject, value, weight, date });
+}
+localStorage.setItem('morozova_grades_v2', JSON.stringify(grades));
+closeSheets();
+renderGrades();
+}
+function deleteGrade() {
+if (editingIndex >= 0) {
+grades.splice(editingIndex, 1);
+localStorage.setItem('morozova_grades_v2', JSON.stringify(grades));
+closeSheets();
+renderGrades();
+}
+}
+function resetGrades() {
+grades = [...defaultGrades];
+localStorage.setItem('morozova_grades_v2', JSON.stringify(grades));
+closeSheets();
+renderGrades();
+}
+function switchTab(tab) {
+['home', 'diary', 'schedule', 'reports'].forEach(t => {
+document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
+const nav = document.getElementById('nav-' + t);
+if (nav) nav.classList.toggle('active', t === tab);
+});
+window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function openSheet(id) {
+closeSheets();
+document.getElementById(id).classList.add('open');
+}
+function closeSheets() {
+document.querySelectorAll('.sheet-overlay').forEach(el => el.classList.remove('open'));
+}
+function toggleTheme() {
+const isDark = document.body.classList.toggle('dark-theme');
+document.getElementById('moon-icon').classList.toggle('active', isDark);
+document.getElementById('sun-icon').classList.toggle('active', !isDark);
+}
+toggleHomeSched('tomorrow');
+renderGrades();
