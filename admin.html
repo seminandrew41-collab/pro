@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Оценки — управление</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg-body:#F2F4F7;--bg-card:#FFFFFF;--bg-subtle:#F4F6F9;--text-primary:#141C2B;--text-secondary:#6E7A8A;--accent-blue:#1565D8;--border-color:#EAECF0;--red-badge-bg:#FEECEB;--red-badge-text:#C93B32;--green-badge-bg:#E7F7EE;--green-badge-text:#1B874B;--shadow-card:0 2px 10px rgba(16,24,40,.04)}
+  @media (prefers-color-scheme: dark){:root{--bg-body:#11151C;--bg-card:#1C222D;--bg-subtle:#252D3B;--text-primary:#F2F4F7;--text-secondary:#98A2B3;--accent-blue:#3B82F6;--border-color:#2D3646;--red-badge-bg:#3F1B1A;--red-badge-text:#F87171;--green-badge-bg:#133A26;--green-badge-text:#4ADE80}}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg-body);color:var(--text-primary);display:flex;justify-content:center}
+  .app{width:100%;max-width:430px;min-height:100vh}
+  .banner{background:var(--bg-card);padding:14px 16px;border-bottom:1px solid var(--border-color);position:relative}
+  .banner::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:4px;background:var(--accent-blue);border-radius:0 4px 4px 0}
+  .banner h1{font-size:20px;font-weight:700}
+  .content{padding:14px 12px;display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--bg-card);border-radius:16px;padding:16px;box-shadow:var(--shadow-card)}
+  .title{font-size:17px;font-weight:700;margin-bottom:14px}
+  .form-group{margin-bottom:12px}
+  .form-group label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px;font-weight:600}
+  .form-group input,.form-group select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-subtle);color:var(--text-primary);font-size:14px;font-family:inherit}
+  .row{display:flex;gap:8px}.row .form-group{flex:1}
+  .btn-primary{width:100%;padding:11px;border:none;border-radius:10px;background:var(--accent-blue);color:#fff;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit}
+  .btn-danger{padding:6px 10px;border:none;border-radius:10px;background:var(--red-badge-bg);color:var(--red-badge-text);font-weight:600;font-size:12px;cursor:pointer;font-family:inherit}
+  .g-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--border-color)}
+  .g-row:last-child{border-bottom:none}
+  .g-subj{font-size:14px;font-weight:600}.g-meta{font-size:12px;color:var(--text-secondary);margin-top:2px}
+  .pill{display:inline-flex;width:28px;height:28px;border-radius:8px;align-items:center;justify-content:center;font-weight:700;background:var(--green-badge-bg);color:var(--green-badge-text);margin-right:10px}
+  .left{display:flex;align-items:center}
+  .msg{font-size:13px;margin-top:10px;color:var(--text-secondary);min-height:18px}
+  .msg.err{color:var(--red-badge-text)}
+  .hidden{display:none!important}
+</style></head><body>
+<div class="app">
+  <div class="banner"><h1>Управление оценками</h1></div>
+  <div class="content">
+    <div class="card" id="login">
+      <div class="title">Вход</div>
+      <div class="form-group"><label>Пароль</label><input type="password" id="pwd" autocomplete="current-password"></div>
+      <button class="btn-primary" onclick="login()">Войти</button>
+      <div class="msg err" id="login-msg"></div>
+    </div>
+    <div class="hidden" id="panel" style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="title">Добавить оценку</div>
+        <div class="form-group"><label>Предмет</label>
+          <select id="subject"></select></div>
+        <div class="row">
+          <div class="form-group"><label>Оценка</label>
+            <select id="value"><option>5</option><option>4</option><option>3</option><option>2</option></select></div>
+          <div class="form-group"><label>Вес</label><input type="number" id="weight" value="10" min="1"></div>
+        </div>
+        <div class="form-group"><label>Дата</label><input type="date" id="date"></div>
+        <button class="btn-primary" onclick="addGrade()">Добавить</button>
+        <div class="msg" id="msg"></div>
+      </div>
+      <div class="card"><div class="title">Все оценки</div><div id="list"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const SUBJECTS=['Алгебра и начала анализа','Биология','Вероятность и статистика','География','Геометрия','Ин. яз. 1','Индивидуальный проект','Информатика','История','Литература','ОБЗР','Обществознание','Русский язык','Физика','Физическая культура','Химия','Экспериментальная биология','Экспериментальная химия'];
+let pwd=sessionStorage.getItem('adm')||'';
+const $=id=>document.getElementById(id);
+$('subject').innerHTML=SUBJECTS.map(s=>`<option>${s}</option>`).join('');
+$('date').value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+async function api(method,url,body){
+  const r=await fetch(url,{method,headers:{'Content-Type':'application/json','x-admin-password':pwd},body:body?JSON.stringify(body):undefined});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||'Ошибка');
+  return j;
+}
+async function login(){
+  pwd=$('pwd').value||pwd;
+  try{await api('GET','/api/check');sessionStorage.setItem('adm',pwd);$('login').classList.add('hidden');$('panel').classList.remove('hidden');load();}
+  catch(e){$('login-msg').textContent=e.message;}
+}
+async function load(){
+  const list=await fetch('/api/grades',{cache:'no-store'}).then(r=>r.json());
+  $('list').innerHTML=list.map(g=>`<div class="g-row"><div class="left"><span class="pill">${g.value}</span><div><div class="g-subj">${g.subject}</div><div class="g-meta">${g.date} · вес ${g.weight}</div></div></div><button class="btn-danger" onclick="del('${g.id}')">Удалить</button></div>`).join('')||'<div class="g-meta">Оценок нет</div>';
+}
+async function addGrade(){
+  try{
+    await api('POST','/api/grades',{subject:$('subject').value,value:+$('value').value,weight:+$('weight').value,iso:$('date').value});
+    $('msg').className='msg';$('msg').textContent='Добавлено';load();
+  }catch(e){$('msg').className='msg err';$('msg').textContent=e.message;}
+}
+async function del(id){
+  if(!confirm('Удалить оценку?'))return;
+  try{await api('DELETE','/api/grades/'+encodeURIComponent(id));load();}catch(e){alert(e.message);}
+}
+$('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+if(pwd)login();
+</script></body></html>

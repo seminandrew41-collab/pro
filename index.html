@@ -910,6 +910,15 @@ cursor: pointer;
   .app-shell { background-color: var(--bg-body); }
   body { background-color: #E4E7EC; }
 
+
+  .day-tabs { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .day-tab { border: none; background: var(--bg-subtle); border-radius: 12px; padding: 7px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; font-family: inherit; font-size: 11px; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+  .day-tab b { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .day-tab.weekend, .day-tab.weekend b { color: var(--red-badge-text); }
+  .day-tab.today { box-shadow: inset 0 0 0 1px var(--accent-blue); }
+  .day-tab.active { background: var(--accent-blue); color: #fff; }
+  .day-tab.active b { color: #fff; }
+  .sched-empty { color: var(--text-secondary); font-size: 14px; padding: 4px 0; }
 </style>
 </head>
 <body>
@@ -1243,7 +1252,7 @@ cursor: pointer;
           <div>
             <div style="font-size:14px;font-weight:700">Расписание по дням недели</div>
             <div class="filter-chips" style="margin-top:6px">
-              <span class="chip">16.11 - 22.11</span>
+              <span class="chip" id="week-chip">16.11 - 22.11</span>
               <span class="chip">Только учебная</span>
               <span class="chip">10Б</span>
             </div>
@@ -1253,21 +1262,18 @@ cursor: pointer;
       </div>
 
       <div class="section-card">
-        <div class="section-title" style="font-size:15px">Понедельник <span class="att-day-date">16.11.2026</span></div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 2 · 09:25 - 10:05</div>10*/Ист./10Б</div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 3 · 10:20 - 11:00</div>10*/Литер/10Б</div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 4 · 11:15 - 11:55</div>10*/Физ./10Б</div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 5 · 12:10 - 12:50</div>10*/Геогр./10Б</div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 6 · 13:05 - 13:45</div>10*/Алг. нач./Б</div>
+        <div class="section-header">
+          <div class="section-title" style="font-size:15px">Выберите день</div>
+          <div class="toggle-pills">
+            <button class="toggle-pill" onclick="shiftWeek(-1)">‹</button>
+            <button class="toggle-pill" onclick="shiftWeek(0)">Сегодня</button>
+            <button class="toggle-pill" onclick="shiftWeek(1)">›</button>
+          </div>
+        </div>
+        <div class="day-tabs" id="day-tabs"></div>
       </div>
 
-      <div class="section-card">
-        <div class="section-title" style="font-size:15px">Вторник <span class="att-day-date">17.11.2026</span></div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 1 · 08:30 - 09:10</div>10*/Теория и практика написания сочинений разных жанров/х/б</div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 2 · 09:25 - 10:05</div>10*/Хим./Р</div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 3 · 10:20 - 11:00</div>10*/Физ-ра/10Б [сз1]</div>
-        <div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № 4 · 11:15 - 11:55</div>10*/Биол./Р</div>
-      </div>
+      <div class="section-card" id="sched-day-card"></div>
     </div>
   </div>
 
@@ -1333,7 +1339,7 @@ cursor: pointer;
 
     <div class="sheet-menu-item"><div class="sheet-item-left"><span>📱</span>Мобильная версия</div></div>
     <div class="sheet-menu-item"><div class="sheet-item-left"><span>👤</span>Профиль Морозова Алёна</div></div>
-    <div class="sheet-menu-item" style="color:var(--red-badge-text)" onclick="resetGrades()"><div class="sheet-item-left"><span>↪</span>Выход (Сброс оценок)</div></div>
+    <div class="sheet-menu-item" style="color:var(--red-badge-text)" onclick="resetGrades()"><div class="sheet-item-left"><span>↪</span>Обновить оценки</div></div>
 
     <div class="footer-copy">ИРТех, г. Самара. 5.59.1<br>© 2007-2026 Все права защищены</div>
   </div>
@@ -1362,28 +1368,53 @@ cursor: pointer;
 </div>
 
 <script>
-const homeSchedules = {
-  tomorrow: [
-    { num: 1, name: 'Ин. яз. 1', time: '08:30 - 09:10', tag: 'Завтра' },
-    { num: 2, name: 'Ин. яз. 1', time: '09:25 - 10:05', tag: 'Завтра' },
-    { num: 3, name: 'Экспериментальная химия', time: '10:20 - 11:00', tag: 'Завтра' },
-    { num: 4, name: 'Русский язык', time: '11:15 - 11:55', tag: 'Завтра' },
-    { num: 5, name: 'Обществознание', time: '12:10 - 12:50', tag: 'Завтра' },
-    { num: 6, name: 'Вероятность и статистика', time: '13:05 - 13:45', tag: 'Завтра' },
-    { num: 7, name: 'Индивидуальный проект', time: '14:00 - 14:40', tag: 'Завтра' },
-    { num: 8, name: 'Физика', time: '14:55 - 15:35', tag: 'Завтра' }
-  ],
-  today: [
-    { num: 1, name: 'Биология', time: '08:30 - 09:10', tag: 'Сегодня' },
-    { num: 2, name: 'Информатика', time: '09:25 - 10:05', tag: 'Сегодня' },
-    { num: 3, name: 'Экспериментальная биология', time: '10:20 - 11:00', tag: 'Сегодня' },
-    { num: 4, name: 'Литература', time: '11:15 - 11:55', tag: 'Сегодня' },
-    { num: 5, name: 'Химия', time: '12:10 - 12:50', tag: 'Сегодня' },
-    { num: 6, name: 'Геометрия', time: '13:05 - 13:45', tag: 'Сегодня' },
-    { num: 7, name: 'Геометрия', time: '14:00 - 14:40', tag: 'Сегодня' },
-    { num: 8, name: 'Физическая культура', time: '14:55 - 15:35', tag: 'Сегодня' }
-  ]
+const LESSON_TIMES = {1:'08:30 - 09:10',2:'09:25 - 10:05',3:'10:20 - 11:00',4:'11:15 - 11:55',5:'12:10 - 12:50',6:'13:05 - 13:45',7:'14:00 - 14:40',8:'14:55 - 15:35'};
+const DAY_NAMES = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+const DAY_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+// [номер урока, название, подпись как в школьном дневнике]
+const SCHEDULE = {
+  0: [[2,'История','10*/Ист./10Б [26]'],[3,'Литература','10*/Литер/10Б [7]'],[4,'Физика','10*/Физ./10Б [12]'],[5,'География','10*/Геогр./10Б [6]'],[6,'Алгебра и начала анализа','10*/Алг. нач./Б [4]'],[7,'Алгебра и начала анализа','10*/Алг. нач./Б [4]']],
+  1: [[1,'Теория и практика написания сочинений разных жанров','10*/Теория и практика написания сочинений разных жанров/х/б [7]'],[2,'Химия','10*/Хим./Р [3]'],[3,'Физическая культура','10*/Физ-ра/10Б [сз1]'],[4,'Биология','10*/Биол./Р [5]'],[5,'Биология','10*/Биол./Р [5]'],[6,'Ин. яз. 1','10*/Ин. яз. 1/10Б_Мазур [30]'],[7,'История','10*/Ист./10Б [2]']],
+  2: [[1,'Алгебра и начала анализа','10*/Алг. нач./Б [4]'],[2,'Алгебра и начала анализа','10*/Алг. нач./Б [4]'],[3,'Литература','10*/Литер/10Б [7]'],[4,'Русский язык','10*/Рус.язык/10Б [7]'],[5,'ОБЗР','10*/Основы безопасности и защиты Родины/10Б [аз (Актовый зал)]'],[6,'Химия','10*/Хим./10Б [3]'],[7,'Ин. яз. 1','10*/Ин. яз. 1/10Б_Мазур [30]'],[8,'Обществознание','10*/Общ./Ивахин_10Б [2]']],
+  3: [[1,'Биология','10*/Биол./10Б [5]'],[2,'Информатика','10*/Инф./10Б_х/б [15]'],[3,'Экспериментальная биология','10*/ВН/Д Биология/Р [5]'],[4,'Литература','10*/Литер/10Б [7]'],[5,'Химия','10*/Хим./Р [3]'],[6,'Геометрия','10*/Геомет/Б [4]'],[7,'Геометрия','10*/Геомет/Б [4]'],[8,'Физическая культура','10*/Физ-ра/10Б [сз1]']],
+  4: [[1,'Ин. яз. 1','10*/Ин. яз. 1/10Б_Мазур [30]'],[2,'Ин. яз. 1','10*/Ин. яз. 1/10Б_Мазур [30]'],[3,'Экспериментальная химия','10*/ВН/Д Химия в экспериментах/Р [3]'],[4,'Русский язык','10*/Рус.язык/10Б [7]'],[5,'Обществознание','10*/Общ./Ивахин_10Б [8]'],[6,'Вероятность и статистика','10*/Вероятность и статистика/Б [13]'],[7,'Индивидуальный проект','10*/Инд.проект/10Б [7]'],[8,'Физика','10*/Физ./10Б [12]']]
 };
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function fmtDM(d) { return pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1); }
+function dowOf(d) { return (d.getDay() + 6) % 7; } // 0 = понедельник
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function mondayOf(offset) {
+  const t = new Date(); t.setHours(12, 0, 0, 0);
+  return addDays(t, -dowOf(t) + offset * 7);
+}
+
+let weekOffset = 0;
+let selDay = dowOf(new Date());
+
+function renderSchedule() {
+  const mon = mondayOf(weekOffset);
+  const todayStr = fmtDM(new Date()) + new Date().getFullYear();
+  document.getElementById('week-chip').textContent = fmtDM(mon) + ' - ' + fmtDM(addDays(mon, 6));
+  document.getElementById('day-tabs').innerHTML = DAY_SHORT.map((n, i) => {
+    const d = addDays(mon, i);
+    const cls = ['day-tab', i === selDay ? 'active' : '', i > 4 ? 'weekend' : '', fmtDM(d) + d.getFullYear() === todayStr ? 'today' : ''].join(' ');
+    return `<button class="${cls}" onclick="selectDay(${i})">${n}<b>${d.getDate()}</b></button>`;
+  }).join('');
+
+  const date = addDays(mon, selDay);
+  const lessons = SCHEDULE[selDay] || [];
+  document.getElementById('sched-day-card').innerHTML =
+    `<div class="section-title" style="font-size:15px">${DAY_NAMES[selDay]} <span class="att-day-date">${fmtDM(date)}.${date.getFullYear()}</span></div>` +
+    (lessons.length
+      ? lessons.map(l => `<div class="sched-lesson-box"><div style="font-size:12px;color:var(--text-secondary);font-weight:500">Урок № ${l[0]} · ${LESSON_TIMES[l[0]]}</div>${l[2]}</div>`).join('')
+      : '<div class="sched-empty" style="margin-top:8px">Нет занятий и мероприятий на этот день</div>');
+}
+function selectDay(i) { selDay = i; renderSchedule(); }
+function shiftWeek(n) {
+  if (n === 0) { weekOffset = 0; selDay = dowOf(new Date()); } else { weekOffset += n; }
+  renderSchedule();
+}
 
 // Оценки настроены так, чтобы по Химии средний балл был ровно 3,33 ((4+3+3)/3)
 const defaultGrades = [
@@ -1394,39 +1425,37 @@ const defaultGrades = [
   { subject: 'Химия', value: 3, weight: 10, date: '05.11 (Чт)' }
 ];
 
-const STORAGE_KEY = 'morozova_grades_v2';
+let grades = [...defaultGrades];
 
-function loadGrades() {
+async function loadGrades() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (Array.isArray(parsed)) return parsed;
-  } catch (e) {}
-  return [...defaultGrades];
+    const r = await fetch('/api/grades', { cache: 'no-store' });
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    if (Array.isArray(data)) grades = data;
+  } catch (e) { grades = [...defaultGrades]; }
+  renderGrades();
 }
-function saveGrades() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(grades)); } catch (e) {}
-}
-
-let grades = loadGrades();
 let editingIndex = -1;
 
 function toggleHomeSched(day) {
   document.getElementById('btn-today').classList.toggle('active', day === 'today');
   document.getElementById('btn-tomorrow').classList.toggle('active', day === 'tomorrow');
   document.getElementById('home-sched-title').textContent = day === 'tomorrow' ? 'Расписание на завтра' : 'Расписание на сегодня';
-  const list = document.getElementById('home-lessons-list');
-  list.innerHTML = homeSchedules[day].map(l => `
+  const d = addDays(new Date(), day === 'tomorrow' ? 1 : 0);
+  const tag = day === 'tomorrow' ? 'Завтра' : 'Сегодня';
+  const lessons = SCHEDULE[dowOf(d)] || [];
+  document.getElementById('home-lessons-list').innerHTML = lessons.length ? lessons.map(l => `
     <div class="lesson-row">
       <div class="lesson-left">
-        <div class="lesson-num-badge">${l.num}</div>
+        <div class="lesson-num-badge">${l[0]}</div>
         <div>
-          <div class="lesson-name">${l.name}</div>
-          <div class="lesson-time">${l.time}</div>
+          <div class="lesson-name">${l[1]}</div>
+          <div class="lesson-time">${LESSON_TIMES[l[0]]}</div>
         </div>
       </div>
-      <span class="day-tag">${l.tag}</span>
-    </div>`).join('');
+      <span class="day-tag">${tag}</span>
+    </div>`).join('') : '<div class="events-empty-box">Занятий нет</div>';
 }
 
 // ===== Средние баллы и графики по предметам (данные по неделям) =====
@@ -1449,7 +1478,8 @@ const SUBJECT_STATS = {
 };
 // Химия считается по списку «Последних оценок» (можно менять), остальные — из таблицы выше
 const CHEM_BASE = [4,3.8,3.8,4.12,4.14,4.03,4.05,4.02,4.02,3.33,3.33,3.33];
-const SUBJECT_ORDER = [...Object.keys(SUBJECT_STATS), 'Химия'];
+SUBJECT_STATS['Химия'] = WEEK_DATES_12.map((d, i) => [d, CHEM_BASE[i]]);
+const SUBJECT_ORDER = Object.keys(SUBJECT_STATS);
 
 function fmtNum(v) { return String(v).replace('.', ','); }
 
@@ -1459,13 +1489,41 @@ function weightedAvg(subject) {
   return w > 0 ? Number((tw / w).toFixed(2)) : 0;
 }
 
-function getSubjectSeries(subject) {
-  if (SUBJECT_STATS[subject]) return SUBJECT_STATS[subject];
-  const avg = weightedAvg(subject);
-  if (subject === 'Химия') {
-    return WEEK_DATES_12.map((d, i) => [d, i >= WEEK_DATES_12.length - 3 ? avg : CHEM_BASE[i]]);
+// Восстанавливает сумму и количество оценок из округлённой средней (напр. 4,43 = 31/7)
+function baseFromAvg(avg) {
+  for (let n = 1; n <= 60; n++) {
+    const sum = Math.round(avg * n);
+    if (Math.abs(sum / n - avg) < 0.005) return { sum, n };
   }
-  return [['19.11', avg]];
+  return { sum: avg, n: 1 };
+}
+
+function weekEndLabel(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d, 12);
+  dt.setDate(dt.getDate() + ((7 - dt.getDay()) % 7));
+  return fmtDM(dt);
+}
+
+function getSubjectSeries(subject) {
+  const base = SUBJECT_STATS[subject];
+  if (base) {
+    // История из дневника + оценки, добавленные позже (extra) — пересчитываем среднюю
+    const extra = grades.filter(g => g.extra && g.subject === subject).sort((a, b) => (a.iso || '').localeCompare(b.iso || ''));
+    if (!extra.length) return base;
+    const last = base[base.length - 1][1];
+    const b = baseFromAvg(last);
+    let tw = b.sum * 10, w = b.n * 10;
+    const pts = base.slice();
+    extra.forEach(g => {
+      tw += g.value * g.weight; w += g.weight;
+      const label = weekEndLabel(g.iso);
+      const val = Number((tw / w).toFixed(2));
+      if (pts[pts.length - 1][0] === label) pts[pts.length - 1] = [label, val]; else pts.push([label, val]);
+    });
+    return pts;
+  }
+  return [['19.11', weightedAvg(subject)]];
 }
 
 function buildChartSvg(points) {
@@ -1526,10 +1584,8 @@ function renderGrades() {
 
 
 function resetGrades() {
-  grades = [...defaultGrades];
-  saveGrades();
   closeSheets();
-  renderGrades();
+  loadGrades();
 }
 
 function switchTab(tab) {
@@ -1557,7 +1613,9 @@ function toggleTheme() {
 }
 
 toggleHomeSched('tomorrow');
+renderSchedule();
 renderGrades();
+loadGrades();
 
 </script>
 
