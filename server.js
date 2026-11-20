@@ -5,6 +5,7 @@ const crypto = require('crypto');
 
 const PORT = process.env.PORT || 8080;
 // ВАЖНО: задайте свой пароль через переменную окружения ADMIN_PASSWORD на хостинге
+ADMIN_PASSWORD='Meshanina228qwe'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'change-me';
 // Если хостинг стирает файлы при перезапуске — укажите DATA_DIR на постоянный диск (volume)
 const DATA_DIR = process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || __dirname;
